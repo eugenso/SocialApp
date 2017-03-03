@@ -22,8 +22,13 @@ public class MainActivity extends AppCompatActivity {
     APIConnector Connector = new APIConnector();
     String[] liste2 = new String[0];
 
+    int gewählteOberkategorie;
+            int gewählteUnterkategorie;
+
     //ID der Oberkategorie
     int idok;
+    //ID der Unterkategorie
+    int iduk;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,10 +47,46 @@ public class MainActivity extends AppCompatActivity {
 
 
         //Searchview initialisieren
-        SearchView searchView = (SearchView) findViewById(R.id.searchview);
-        /*searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        final SearchView searchView = (SearchView) findViewById(R.id.searchview);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+
+
+
+
+                String [] Suchergebnis= new String[0];
+
+                    if (gewählteOberkategorie==0 && gewählteUnterkategorie==0){
+                        try {
+                            Suchergebnis = Connector.ErgebnisderSuche(0,0,query);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        zeigeAlleTräger(Suchergebnis);}
+            else if (gewählteOberkategorie!= 0 && gewählteUnterkategorie==0) {
+
+                        try {
+                            Suchergebnis = Connector.ErgebnisderSuche(idok,0,query);
+                        } catch (Exception e1) {
+                            e1.printStackTrace();
+                        }
+                        zeigeAlleTräger(Suchergebnis);}
+                        else if(gewählteOberkategorie!=0 && gewählteUnterkategorie!=0){
+
+                        try {
+                            Suchergebnis = Connector.ErgebnisderSuche(idok,iduk,query);
+                        } catch (Exception e1) {
+                            e1.printStackTrace();
+                        }
+                        zeigeAlleTräger(Suchergebnis);}
+
+
+
+
+
+
+
                 return false;
 
             }
@@ -53,18 +94,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextChange(String newText) {
 
-                String [] Suchergebnis= new String[0];
-                try {
-                    Suchergebnis = Connector.ErgebnisderSuche(0,0,newText);
-                    zeigeAlleTräger(Suchergebnis);
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
                 return false;
 
             }
-        });*/
+        });
 
 
 
@@ -93,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
 
         OnItemSelectedListener listener1 = new OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int gewählteOberkategorie_, long id) {
 
                 //Hier muss mit Connector ein Array mit den Unterkategorien erzeugt werden
                 // String [] Unterkategorien= Connector.getUnterkategorie(selectedItemView);
@@ -101,10 +135,10 @@ public class MainActivity extends AppCompatActivity {
 
                 //Wenn die Ok geändert wird, setzte den Spinner 2 zurück
 
-
+                MainActivity.this.gewählteOberkategorie = gewählteOberkategorie_;
 
                 //Wenn alles anzeigen ausgewählt ist, zeige alle Träger an
-                if (position==0) {
+                if (gewählteOberkategorie==0) {
                     String [] alleTraeger= new String[0];
                     try {
                         alleTraeger = Connector.ErgebnisderSuche(0,0,"null");
@@ -120,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else {
                     //apiposition entspricht der oberkategorie id
-                    int apiposition=position-1;
+                    int apiposition=gewählteOberkategorie-1;
                     String [] a={"1,2"};
                     zeigeAlleTräger(a);
                     //String [] Unterkategorien = Connector.getUnterkategorie(apiposition);
@@ -146,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
                         spinnerU.setAdapter(spinnerArrayAdapterU);
 
                         //Textview mit Trägern der ok füllen
-                        int idok=Connector.getOberkategorieId(namederOberkategorie);
+                         idok=Connector.getOberkategorieId(namederOberkategorie);
 
                         String [] alleTraegerderok= Connector.ErgebnisderSuche(idok,0,"null");
                         zeigeAlleTräger(alleTraegerderok);
@@ -198,10 +232,11 @@ public class MainActivity extends AppCompatActivity {
 
         OnItemSelectedListener listener2 = new OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int gewählteUnterkategorie_, long id) {
 
+                gewählteUnterkategorie = gewählteUnterkategorie_;
                 //Wenn alles anzeigen ausgewählt ist, zeige alle Träger an
-                if (position==0) {
+                if (gewählteUnterkategorie==0) {
 
                     //Zeige alle Ergebnisse für alle Unterkategorien der Oberkategorie
                     //zeigeAlleTräger(alleTraeger);
@@ -230,11 +265,11 @@ public class MainActivity extends AppCompatActivity {
                     Spinner spinnerU = (Spinner)findViewById(R.id.spinnerU);
                     String namederUnterkategorie= spinnerU.getSelectedItem().toString();
 
-                    int ukid=Connector.getUnterkategorieId(namederUnterkategorie);
+                    iduk=Connector.getUnterkategorieId(namederUnterkategorie);
 
                     String [] alletraegerderuk= new String [0];
                     try {
-                        alletraegerderuk=Connector.ErgebnisderSuche(idok,ukid,"null");
+                        alletraegerderuk=Connector.ErgebnisderSuche(idok,iduk,"null");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

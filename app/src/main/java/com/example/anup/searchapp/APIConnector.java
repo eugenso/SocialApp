@@ -112,11 +112,7 @@ public class APIConnector {
         return kategorieMap.get(name);
     }
 
-    public int getUnterkategorieID(String name){
 
-        return UkategorieMap.get(name);
-
-    }
 
     public String [] getUnterkategorie(String Oberkategorie) throws Exception {
 
@@ -174,7 +170,9 @@ public class APIConnector {
 
         traegerMap.clear();
 
+        //NULLPOINTER EXCEPTION ABFANGEN
         List<String> list = new ArrayList<String>();
+        try {
         for(int i = 0; i < ErgebnisSucheListe.size(); i++){
 
             JSONObject obj = (JSONObject) ErgebnisSucheListe.get(i);
@@ -183,7 +181,17 @@ public class APIConnector {
             traegerMap.put(obj.get("name").toString(), obj);
 
         }
-        return (String[]) list.toArray(new String [ErgebnisSucheListe.size()]);
+            return (String[]) list.toArray(new String [ErgebnisSucheListe.size()]);
+
+        }
+        catch (NullPointerException e){
+            //keine Ergebnisse für die Suche
+            String [] keineergebnisse= new String [1];
+            keineergebnisse[0]= "Keine Ergebnisse";
+            return keineergebnisse;
+
+
+        }
 
     }
     //Listet Details, wenn man auf ein Angebot klickt, Second Activity zeigt es an
