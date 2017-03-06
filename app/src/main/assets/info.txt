@@ -1,0 +1,1 @@
+Die SocialApp listet verschiedene Angebote im Sozialraum Wandsbek auf. Die Angebote sind dabei nach kürzester Distanz zum jeweiligen Angebot sortiert. Hier können weitere Informationen, z.B. Kontaktdaten, hinzugefügt werden. 

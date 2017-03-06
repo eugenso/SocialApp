@@ -34,8 +34,10 @@ package com.example.anup.searchapp;
 
 
 /**
- * Created by Home on 01.03.17.
+ * Die Klasse stellt die Verbindung zum Server her. In Hashmaps werden eingelesene Daten gespeichert.
+ * Über Funktionen können Oberkategorien,Untergategorien,Ids und auch Ergebnisse abgerufen werden.
  */
+
 
 public class APIConnector {
 
@@ -46,45 +48,16 @@ public class APIConnector {
         //main zum Testen
     public static void main (String [] args)throws java.lang.Exception{
 
-        APIConnector Connector = new APIConnector();
-        String [] movies = Connector.getMovie();
-        System.out.println(Arrays.toString(movies));
-
     }
 
 
-    //String basisUrl="https://jsonparsingdemo-cec5b.firebaseapp.com/jsonData/moviesDemoList.txt";
+    //Die URL dient als Grundlage, in den Funktionen wird sie angepasst
     String basisUrl = "http://ltannotation.informatik.uni-hamburg.de/socialapp/rest";
 
-    public String [] getMovie() throws Exception {
-        String Kategorieanfrage=basisUrl;
-        String zuParsen= readUrl(Kategorieanfrage);
-
-        JSONParser jsonParser = new JSONParser();
-        org.json.simple.JSONObject jsonObject =  (org.json.simple.JSONObject)jsonParser.parse(zuParsen);
-
-        JSONArray MoviesListe = (JSONArray) jsonObject.get("movies");
-
-
-        List<String> list = new ArrayList<String>();
-        list.add("Alles anzeigen");
-        for(int i = 0; i < MoviesListe.size(); i++){
-
-            JSONObject obj = (JSONObject) MoviesListe.get(i);
-            list.add(obj.get("movie").toString());
-        }
-        return (String[]) list.toArray(new String [MoviesListe.size()]);
-
-    }
-   /*public String zuParsen() throws Exception {
-        String Kategorieanfrage=basisUrl;
-        String zuParsen=readUrl(Kategorieanfrage);
-        return zuParsen;
-    }*/
-
-
+    /* Die Funktionen listet alle Oberkategorien auf */
 
     public String [] getOberkategorie() throws Exception {
+
         String Kategorieanfrage=basisUrl+"/offers/";
         String zuParsen= readUrl(Kategorieanfrage);
 
@@ -108,12 +81,13 @@ public class APIConnector {
 
     }
 
+    /* Die Funktion gibt zu einer Oberkategorie die zugehörige ID zurück */
     public int getOberkategorieId(String name) {
         return kategorieMap.get(name);
     }
 
 
-
+    /* Die Funktion gibt zu einer Oberkategorie die Unterkategorie */
     public String [] getUnterkategorie(String Oberkategorie) throws Exception {
 
         int oberkategorieId = kategorieMap.get(Oberkategorie);
@@ -140,22 +114,13 @@ public class APIConnector {
         return (String[]) list.toArray(new String [OberKategorieListe.size()]);
 
     }
+
+    /* Die Funktion gibt zu einer Unterkategorie die zugehörige ID zurück */
     public int getUnterkategorieId(String name){
         return UkategorieMap.get(name);
     }
 
-
-
-    public String [] listCarrier(String Oberkategorie, String Unterkategorie) throws Exception {
-
-        int ok= kategorieMap.get(Oberkategorie);
-        //int uk= kategorieMap;
-        //String []okukcarrier=ErgebnisderSuche(Oberkategorie, Unterkategorie, null);
-       // return okukcarrier;
-        String [] test={"1","2"};
-        return test;
-    }
-
+/* Die Funktion gibt zu einer Oberkategorie,einer Unterkategorie und einer Suche die gefundenen Träger zurück */
 
     public String [] ErgebnisderSuche(int Oberkategorie, int Unterkategorie, String keyword) throws Exception {
 
@@ -194,18 +159,51 @@ public class APIConnector {
         }
 
     }
-    //Listet Details, wenn man auf ein Angebot klickt, Second Activity zeigt es an
+
+
+    /* Die Funktion gibt zu einer Oberkategorie die zugehörige ID zurück. Die Ergebnisse werden nach der Distanz zum Träger gelistet.  */
+    public String [] ErgebnisderSucheGPS(int Oberkategorie, int Unterkategorie, String keyword, int latitude, int longitude) throws Exception {
+
+
+        String Kategorieanfrage=basisUrl+"/geosearch/"+keyword+"/"+Oberkategorie+"/"+Unterkategorie+"/"+latitude+"/"+longitude;
+        String zuParsen= readUrl(Kategorieanfrage);
+
+        JSONParser jsonParser = new JSONParser();
+        org.json.simple.JSONObject jsonObject =  (org.json.simple.JSONObject)jsonParser.parse(zuParsen);
+
+        JSONArray ErgebnisSucheListe = (JSONArray) jsonObject.get("traeger");
+
+        traegerMap.clear();
+
+        //NULLPOINTER EXCEPTION ABFANGEN
+        List<String> list = new ArrayList<String>();
+        try {
+            for(int i = 0; i < ErgebnisSucheListe.size(); i++){
+
+                JSONObject obj = (JSONObject) ErgebnisSucheListe.get(i);
+                list.add(obj.get("name").toString());
+
+                traegerMap.put(obj.get("name").toString(), obj);
+
+            }
+            return (String[]) list.toArray(new String [ErgebnisSucheListe.size()]);
+
+        }
+        catch (NullPointerException e){
+            //keine Ergebnisse für die Suche
+            String [] keineergebnisse= new String [1];
+            keineergebnisse[0]= "Keine Ergebnisse";
+            return keineergebnisse;
+
+
+        }
+
+    }
+
+
+    /*Listet Details, wenn man auf ein Angebot klickt, Second Activity zeigt es an*/
+
     public String[] getDetails(String name) throws NullPointerException {
-
-        //List<String> list = new ArrayList<String>();
-
-       /* if (name.compareTo("a") == 0) {
-            list.add("name a");
-            list.add("adresse x");
-        } else {
-            list.add("name b");
-            list.add("adresse y");
-        }*/
 
         JSONParser jsonParser = new JSONParser();
         JSONObject tr = traegerMap.get(name);
@@ -228,44 +226,7 @@ public class APIConnector {
     }
 
 
-
-    //neue Funktion für die neue Seite getdata
-    //list.add("Adresse: " + obj.get("adresse"));
-    //list.add("Zielpubli")
-    @Nullable
-    /*private String getResult(String Url){
-        String Result="";
-        String JSON_STRING="";
-
-        try
-        {
-            URL url = new URL(Url);
-            HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
-            InputStream inputStream = httpURLConnection.getInputStream();
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-            StringBuilder stringBuilder = new StringBuilder();
-            while ((JSON_STRING = bufferedReader.readLine())!= null)
-            {
-                stringBuilder.append(JSON_STRING+"\n");
-            }
-
-            bufferedReader.close();
-            inputStream.close();
-            httpURLConnection.disconnect();
-            Result= stringBuilder.toString().trim();
-            return Result;
-        }
-        catch (MalformedURLException e)
-        {
-            e.printStackTrace();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-        return null;
-    }*/
-
+    /* Die Funktion gibt zu einer URL einen String zurück. */
     private static String readUrl(String urlString) throws Exception {
         BufferedReader reader = null;
         try {

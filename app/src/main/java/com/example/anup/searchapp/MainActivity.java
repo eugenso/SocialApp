@@ -1,10 +1,18 @@
 package com.example.anup.searchapp;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.StrictMode;
 
 
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.SearchView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -13,22 +21,31 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import static com.example.anup.searchapp.R.id.listview;
+
+/* Diese Klasse trägt Daten bei den DropDownMenüs ein. Die Funktionen der DropDownMenüs und der Suchleiste werden definiert.
+ Die Suchergebnisse werden in das Textview eingetragen. */
 
 public class MainActivity extends AppCompatActivity {
     String JSON_STRING;
     //Hier wird ein API Connector erstellt
     APIConnector Connector = new APIConnector();
-    String[] liste2 = new String[0];
+    String[] oberKategorieListe = new String[0];
 
     int gewählteOberkategorie;
-            int gewählteUnterkategorie;
+    int gewählteUnterkategorie;
 
     //ID der Oberkategorie
     int idok;
     //ID der Unterkategorie
     int iduk;
+
+    //Location Manager
+    Context mContext;
+    int latitude;
+    int longitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +62,33 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+        //Location Manager
+        mContext = this;
+
+        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+
+        } else {
+            Toast.makeText(mContext,"Die Suchergebnisse werden nach kürzester Distanz sortiert",Toast.LENGTH_LONG).show();
+            GPSTracker gps = new GPSTracker(mContext, MainActivity.this);
+
+
+            // Checken, obs GPS aktiviert ist
+            if (gps.canGetLocation()) {
+
+                double reallatitude= gps.getLatitude();
+                double reallongitude = gps.getLongitude();
+
+                 latitude= (int) reallatitude;
+                longitude= (int) reallongitude;
+
+                //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
+            } else {
+                // GPS oder Netzwerk sind nicht aktiviert
+                gps.showSettingsAlert();
+            }
+        }
+
 
         //Searchview initialisieren
         final SearchView searchView = (SearchView) findViewById(R.id.searchview);
@@ -59,15 +103,15 @@ public class MainActivity extends AppCompatActivity {
 
                     if (gewählteOberkategorie==0 && gewählteUnterkategorie==0){
                         try {
-                            Suchergebnis = Connector.ErgebnisderSuche(0,0,query);
+                            Suchergebnis = Connector.ErgebnisderSucheGPS(0,0,query,latitude,longitude);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                         zeigeAlleTräger(Suchergebnis);}
-            else if (gewählteOberkategorie!= 0 && gewählteUnterkategorie==0) {
+                        else if (gewählteOberkategorie!= 0 && gewählteUnterkategorie==0) {
 
                         try {
-                            Suchergebnis = Connector.ErgebnisderSuche(idok,0,query);
+                            Suchergebnis = Connector.ErgebnisderSucheGPS(idok,0,query,latitude,longitude);
                         } catch (Exception e1) {
                             e1.printStackTrace();
                         }
@@ -75,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
                         else if(gewählteOberkategorie!=0 && gewählteUnterkategorie!=0){
 
                         try {
-                            Suchergebnis = Connector.ErgebnisderSuche(idok,iduk,query);
+                            Suchergebnis = Connector.ErgebnisderSucheGPS(idok,iduk,query,latitude,longitude);
                         } catch (Exception e1) {
                             e1.printStackTrace();
                         }
@@ -105,14 +149,14 @@ public class MainActivity extends AppCompatActivity {
 
 
         try {
-            liste2 = Connector.getOberkategorie();
+            oberKategorieListe = Connector.getOberkategorie();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         //spinner1 wird erstellt und einfügen von Array
         final Spinner spinner = (Spinner) findViewById(R.id.spinner);
-        final ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, liste2);
+        final ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, oberKategorieListe);
         spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);// The drop down view
         spinner.setAdapter(spinnerArrayAdapter);
 
@@ -122,8 +166,7 @@ public class MainActivity extends AppCompatActivity {
         final ArrayAdapter<String> spinnerArrayAdapterU = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, new String[0]);
         spinnerArrayAdapterU.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);// The drop down view
 
-        //TESTEST
-        //final TextView text = (TextView) findViewById(R.id.textView);
+        // Es wird ein Listener für das Oberkategorien-DropDownMenü erstellt.
 
         OnItemSelectedListener listener1 = new OnItemSelectedListener() {
             @Override
@@ -141,11 +184,10 @@ public class MainActivity extends AppCompatActivity {
                 if (gewählteOberkategorie==0) {
                     String [] alleTraeger= new String[0];
                     try {
-                        alleTraeger = Connector.ErgebnisderSuche(0,0,"null");
+                        alleTraeger = Connector.ErgebnisderSucheGPS(0,0,"null",latitude,longitude);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    //String [] alleTraeger={"T1,T2"};
                     zeigeAlleTräger(alleTraeger);
                     Spinner spinnerU= (Spinner) findViewById(R.id.spinnerU);
                     spinnerU.setEnabled(false);
@@ -153,11 +195,6 @@ public class MainActivity extends AppCompatActivity {
 
                 }
                 else {
-                    //apiposition entspricht der oberkategorie id
-                    int apiposition=gewählteOberkategorie-1;
-                    String [] a={"1,2"};
-                    zeigeAlleTräger(a);
-                    //String [] Unterkategorien = Connector.getUnterkategorie(apiposition);
 
                     //Setzte Unterkategorien in Spinner U ein -> unten
                     // Spinner mit Unterkategorien füllen
@@ -182,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
                         //Textview mit Trägern der ok füllen
                          idok=Connector.getOberkategorieId(namederOberkategorie);
 
-                        String [] alleTraegerderok= Connector.ErgebnisderSuche(idok,0,"null");
+                        String [] alleTraegerderok= Connector.ErgebnisderSucheGPS(idok,0,"null",latitude,longitude);
                         zeigeAlleTräger(alleTraegerderok);
 
 
@@ -198,26 +235,11 @@ public class MainActivity extends AppCompatActivity {
 
                 }
 
-
-                //spinner 2 erhält unterkategorien
-
-                //TESTEST
-                //Spinner spinnerO = (Spinner) findViewById(R.id.spinner);
-                // text.setText(spinnerO.getSelectedItem().toString());
-
-
-
-
             }
 
 
             @Override
             public void onNothingSelected(AdapterView<?> parentView) {
-                // Hier muss mit Connector ein Array mit allen Trägern erzeugt werden
-                //String[] alleTräger = {"T1", "T2"};
-                // Fülle die Listview mit dem Array alle Träger
-                //zeigeAlleTräger(alleTräger);
-
 
             }
 
@@ -229,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
+        // Es wird ein zweiter Listener für das Unterkategorien-DropDownMenü erstellt
         OnItemSelectedListener listener2 = new OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int gewählteUnterkategorie_, long id) {
@@ -239,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
                 if (gewählteUnterkategorie==0) {
 
                     //Zeige alle Ergebnisse für alle Unterkategorien der Oberkategorie
-                    //zeigeAlleTräger(alleTraeger);
+
                     Spinner spinner = (Spinner)findViewById(R.id.spinner);
                     String namederOberkategorie = spinner.getSelectedItem().toString();
 
@@ -247,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
 
                     String [] alleTraegerderok= new String[0];
                     try {
-                        alleTraegerderok = Connector.ErgebnisderSuche(idok,0,"null");
+                        alleTraegerderok = Connector.ErgebnisderSucheGPS(idok,0,"null",latitude,longitude);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -258,8 +280,6 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else {
                     //TextView aktualsieren, zeige alle Träger für gewählte Unterkategorie
-                    String [] a= {"ausgewählte unterkategorie"};
-                    zeigeAlleTräger(a);
 
                     //Unterkategorie bekommen
                     Spinner spinnerU = (Spinner)findViewById(R.id.spinnerU);
@@ -269,7 +289,8 @@ public class MainActivity extends AppCompatActivity {
 
                     String [] alletraegerderuk= new String [0];
                     try {
-                        alletraegerderuk=Connector.ErgebnisderSuche(idok,iduk,"null");
+                        alletraegerderuk=Connector.ErgebnisderSucheGPS(idok,iduk,"null",latitude,longitude);
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -283,11 +304,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parentView) {
-                // Hier muss mit Connector ein Array mit allen Trägern erzeugt werden
-                //String[] alleTräger = {"T1", "T2"};
-                // Fülle die Listview mit dem Array alle Träger
-                //zeigeAlleTräger(alleTräger);
-
 
             }
 
@@ -298,8 +314,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /* Diese Funktion lässt das String Array im ListView darstellen. */
+
     public void zeigeAlleTräger(String [] alleTräger){
-        //Zeige alle Träger
         ArrayAdapter<String> myadapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, alleTräger);
 
         final ListView mylist = (ListView) findViewById(listview);
@@ -326,14 +343,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    //Info Button
+    public boolean onCreateOptionsMenu (Menu menu){
 
+        MenuInflater menuInflater=getMenuInflater();
+        menuInflater.inflate(R.menu.menu_main,menu);
+        return true;
+    }
+    /* Wenn auf den Info Button geklickt wird, rufe die Info Aktivität auf. */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int res_id = item.getItemId();
+        if (res_id==R.id.action_info){
 
+            Intent intent= new Intent (MainActivity.this, InformationActivity.class);
+            startActivity(intent);
 
-
-
-
-
-
-
-
+        }
+        return true;
+    }
 }

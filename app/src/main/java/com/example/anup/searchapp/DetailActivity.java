@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+/* Die Klasse stellt die Detailansicht eines ausgewählten Angebots dar. */
+
 public class DetailActivity extends AppCompatActivity {
 
     ListView suchErgebnis;
@@ -13,24 +15,15 @@ public class DetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
-        //neuen API Connector erstellen
-       APIConnector Connector;
 
 
         suchErgebnis = (ListView) findViewById(R.id.Suchergebnis);
 
         Bundle bundle =getIntent().getExtras();
         if (bundle!= null)
-        {   // in s ist das worauf man geklickt hat
-            String s= bundle.getString("angebotsname");
+        {
+            // In den Details sind die Informationen zum ausgewählten Angebot gespeichert.
             String[] details = bundle.getStringArray("details");
-
-
-
-            //Alle Daten vom ausgewählten Angebot vom API Connector anfragen und ausgeben
-
-
-            String[] myStringArray = {"suchErgebnis 1", "2", "3", s};
             ArrayAdapter<String> myadapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, details);
             suchErgebnis.setAdapter((myadapter));
 
