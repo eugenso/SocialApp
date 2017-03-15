@@ -29,11 +29,12 @@ import static com.example.anup.searchapp.R.id.listview;
  Die Suchergebnisse werden in das Textview eingetragen. */
 
 public class MainActivity extends AppCompatActivity {
-    String JSON_STRING;
-    //Hier wird ein API Connector erstellt
+
+    //Hier wird ein APIConnector erstellt
     APIConnector Connector = new APIConnector();
     String[] oberKategorieListe = new String[0];
 
+    // Gewählte Ober- und Unterkategorie im Spinner. Eintrag 0 ist alles anzeigen
     int gewählteOberkategorie;
     int gewählteUnterkategorie;
 
@@ -65,39 +66,41 @@ public class MainActivity extends AppCompatActivity {
         //Location Manager
         mContext = this;
 
-        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
 
-        } else {
-            Toast.makeText(mContext,"Die Suchergebnisse werden nach kürzester Distanz sortiert",Toast.LENGTH_LONG).show();
-            GPSTracker gps = new GPSTracker(mContext, MainActivity.this);
+        /* Die Searchview wird initialisert und ein onQueryTextSubmit Listener gesetzt */
 
 
-            // Checken, obs GPS aktiviert ist
-            if (gps.canGetLocation()) {
-
-                double reallatitude= gps.getLatitude();
-                double reallongitude = gps.getLongitude();
-
-                 latitude= (int) reallatitude;
-                longitude= (int) reallongitude;
-
-                //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
-            } else {
-                // GPS oder Netzwerk sind nicht aktiviert
-                gps.showSettingsAlert();
-            }
-        }
-
-
-        //Searchview initialisieren
         final SearchView searchView = (SearchView) findViewById(R.id.searchview);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
 
+                //GPS Tracker
+                if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+
+                } else {
+                    Toast.makeText(mContext,"Die Suchergebnisse werden nach kürzester Distanz sortiert",Toast.LENGTH_LONG).show();
+                    GPSTracker gps = new GPSTracker(mContext, MainActivity.this);
 
 
+                    // Checken, obs GPS aktiviert ist
+                    if (gps.canGetLocation()) {
+
+                        double reallatitude= gps.getLatitude();
+                        double reallongitude = gps.getLongitude();
+
+                        latitude= (int) reallatitude;
+                        longitude= (int) reallongitude;
+
+                        //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
+                    } else {
+                        // GPS oder Netzwerk sind nicht aktiviert
+                        gps.showSettingsAlert();
+                    }
+                }
+
+                //Verschiedene Fälle prüfen, welche Oberkategorie und Unterkategorie gewählt wurde
 
                 String [] Suchergebnis= new String[0];
 
@@ -124,12 +127,6 @@ public class MainActivity extends AppCompatActivity {
                             e1.printStackTrace();
                         }
                         zeigeAlleTräger(Suchergebnis);}
-
-
-
-
-
-
 
                 return false;
 
@@ -166,17 +163,43 @@ public class MainActivity extends AppCompatActivity {
         final ArrayAdapter<String> spinnerArrayAdapterU = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, new String[0]);
         spinnerArrayAdapterU.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);// The drop down view
 
-        // Es wird ein Listener für das Oberkategorien-DropDownMenü erstellt.
+        /* Es wird ein Listener für das Oberkategorien-DropDownMenü erstellt. */
 
         OnItemSelectedListener listener1 = new OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int gewählteOberkategorie_, long id) {
 
-                //Hier muss mit Connector ein Array mit den Unterkategorien erzeugt werden
-                // String [] Unterkategorien= Connector.getUnterkategorie(selectedItemView);
-                //String[] Unterkategorien = {"u1", "u2"};
 
-                //Wenn die Ok geändert wird, setzte den Spinner 2 zurück
+
+
+               //GPS Tracker
+                if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+
+                } else {
+
+                    GPSTracker gps = new GPSTracker(mContext, MainActivity.this);
+
+
+                    // Checken, obs GPS aktiviert ist
+                    if (gps.canGetLocation()) {
+
+                        double reallatitude= gps.getLatitude();
+                        double reallongitude = gps.getLongitude();
+
+                        latitude= (int) reallatitude;
+                        longitude= (int) reallongitude;
+
+                        //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
+                    } else {
+                        // GPS oder Netzwerk sind nicht aktiviert
+                        gps.showSettingsAlert();
+                    }
+                }
+
+
+
+                // Wenn alles anzeigen ausgewählt ist, zeige alles an
 
                 MainActivity.this.gewählteOberkategorie = gewählteOberkategorie_;
 
@@ -196,27 +219,25 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else {
 
-                    //Setzte Unterkategorien in Spinner U ein -> unten
-                    // Spinner mit Unterkategorien füllen
-                    //TextView noch aktualisieren
+                    // Wenn nicht alles anzeigen ausgewählt ist, setzte die Unterkategorien der Oberkategorie in den Spinner U ein
+                   // Aktualisieren des ListViews und anzeigen der Träger gewählten Oberkategorie
 
                     try {
 
 
-                        //Spinner mit UK füllen
+                        //Spinner U mit den Unterkategorien füllen
                         Spinner spinner = (Spinner)findViewById(R.id.spinner);
                         String namederOberkategorie = spinner.getSelectedItem().toString();
                         String [] ukderok=Connector.getUnterkategorie(namederOberkategorie);
 
                         Spinner spinnerU = (Spinner) findViewById(R.id.spinnerU);
 
-                        //spinnerUenable
                         spinnerU.setEnabled(true);
                         ArrayAdapter<String> spinnerArrayAdapterU = new ArrayAdapter<String>(MainActivity.super.getApplicationContext(), android.R.layout.simple_spinner_item, ukderok);
                         spinnerArrayAdapterU.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);// The drop down view
                         spinnerU.setAdapter(spinnerArrayAdapterU);
 
-                        //Textview mit Trägern der ok füllen
+                        //Textview mit Trägern der gewählten Oberkategorie füllen
                          idok=Connector.getOberkategorieId(namederOberkategorie);
 
                         String [] alleTraegerderok= Connector.ErgebnisderSucheGPS(idok,0,"null",latitude,longitude);
@@ -256,11 +277,40 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int gewählteUnterkategorie_, long id) {
 
+
+                //GPS-Tracker
+                if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+
+                } else {
+
+                    GPSTracker gps = new GPSTracker(mContext, MainActivity.this);
+
+
+                    // Checken, obs GPS aktiviert ist
+                    if (gps.canGetLocation()) {
+
+                        double reallatitude= gps.getLatitude();
+                        double reallongitude = gps.getLongitude();
+
+                        latitude= (int) reallatitude;
+                        longitude= (int) reallongitude;
+
+
+                    } else {
+                        // GPS oder Netzwerk sind nicht aktiviert
+                        gps.showSettingsAlert();
+                    }
+                }
+
+
+                // Wenn alles anzeigen gewählt ist, zeige alle Träger der Oberkategorie. Sonst nur die Träger der Unterkategorie zeigen.
+
                 gewählteUnterkategorie = gewählteUnterkategorie_;
-                //Wenn alles anzeigen ausgewählt ist, zeige alle Träger an
+
                 if (gewählteUnterkategorie==0) {
 
-                    //Zeige alle Ergebnisse für alle Unterkategorien der Oberkategorie
+                    // Alles anzeigen ist gewählt. Alle Träger der Oberkategorie im ListView anzeigen
 
                     Spinner spinner = (Spinner)findViewById(R.id.spinner);
                     String namederOberkategorie = spinner.getSelectedItem().toString();
@@ -279,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
 
                 }
                 else {
-                    //TextView aktualsieren, zeige alle Träger für gewählte Unterkategorie
+                    // Zeige die Träger der Unterkategorie im ListView an
 
                     //Unterkategorie bekommen
                     Spinner spinnerU = (Spinner)findViewById(R.id.spinnerU);
@@ -314,7 +364,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    /* Diese Funktion lässt das String Array im ListView darstellen. */
+    /* Diese Funktion lässt das String Array im ListView darstellen.
+    * @param alleTräger die anzuzeigenden Träger
+    *
+    * */
 
     public void zeigeAlleTräger(String [] alleTräger){
         ArrayAdapter<String> myadapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, alleTräger);
@@ -325,14 +378,12 @@ public class MainActivity extends AppCompatActivity {
 
             public void onItemClick(AdapterView<?> adapterview, View view, int i, long l) {
                 Intent intent= new Intent (MainActivity.this, DetailActivity.class);
-                intent.putExtra("angebotsname", mylist.getItemAtPosition(i).toString());
+
                 intent.putExtra("details", Connector.getDetails(mylist.getItemAtPosition(i).toString()));
 
                 startActivity(intent);
             }
         });
-
-
 
         mylist.setAdapter((myadapter));
 

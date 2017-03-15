@@ -20,6 +20,8 @@ public class InformationActivity extends AppCompatActivity {
 
         tv_text=(TextView) findViewById(R.id.textView2);
 
+        // Im TextView info.txt anzeigen
+
         String text="";
         try {
             InputStream inputStream = getAssets().open("info.txt");
@@ -31,6 +33,7 @@ public class InformationActivity extends AppCompatActivity {
         }catch (IOException e){
             e.printStackTrace();
         }
+
         tv_text.setText(text);
     }
 }
