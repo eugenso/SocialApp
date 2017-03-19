@@ -401,7 +401,7 @@ public class MainActivity extends AppCompatActivity {
         menuInflater.inflate(R.menu.menu_main,menu);
         return true;
     }
-    /* Wenn auf den Info Button geklickt wird, rufe die Info Aktivität auf. */
+    /* Wenn auf den Info Button geklickt wird, wird die Info Aktivität aufgerufen. */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int res_id = item.getItemId();
