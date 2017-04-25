@@ -52,7 +52,7 @@ public class APIConnector {
 
 
     //Die URL dient als Grundlage, in den Funktionen wird sie angepasst
-    String basisUrl = "http://ltannotation.informatik.uni-hamburg.de/socialapp/rest";
+    String basisUrl = "http://ltdemos.informatik.uni-hamburg.de/socialapp/rest";
 
     /* Die Funktionen listet alle Oberkategorien auf
      * @return String Array mit Oberkategorien */
