@@ -1,24 +1,14 @@
 package com.example.anup.searchapp;
 
 
-        import android.support.annotation.Nullable;
-        import android.util.JsonReader;
-        import android.widget.TextView;
 
         import org.json.simple.JSONArray;
         import org.json.simple.JSONObject;
         import org.json.simple.parser.JSONParser;
-        import org.json.simple.parser.ParseException;
+
 
         import java.io.BufferedReader;
-        import java.io.FileNotFoundException;
-        import java.io.FileReader;
-        import java.io.IOException;
-        import java.io.InputStream;
         import java.io.InputStreamReader;
-        import java.io.StringReader;
-        import java.net.HttpURLConnection;
-        import java.net.MalformedURLException;
         import java.net.URL;
         import java.util.ArrayList;
         import java.util.Arrays;
@@ -26,11 +16,6 @@ package com.example.anup.searchapp;
         import java.util.Iterator;
         import java.util.List;
         import java.util.Map;
-
-        import static android.R.attr.id;
-        import static android.R.attr.name;
-        import static android.R.id.input;
-        import static android.R.id.list;
 
 
 /**
